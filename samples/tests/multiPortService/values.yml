@@ -1,0 +1,9 @@
+application:
+  name: test-deployment
+
+  image: busybox
+  tag: 1.0.0
+
+  ports:
+    - 27017
+    - 80

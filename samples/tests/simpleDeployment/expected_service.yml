@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-deployment-node-svc-0
+  labels:
+    app: test-deployment-svc
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: test-deployment-0.example.io
+    external-dns.alpha.kubernetes.io/access: private
+    foo.io: bar
+spec:
+  type: NodePort
+  externalTrafficPolicy: Cluster
+  ports:
+    - protocol: TCP
+      targetPort: 80
+      port: 80
+      name: tcp0
+  selector:
+    statefulset.kubernetes.io/pod-name: test-deployment-0

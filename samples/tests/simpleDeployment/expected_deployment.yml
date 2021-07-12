@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: test-deployment
+  name: test-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: test-deployment
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+      labels:
+        app: test-deployment
+        name: test-deployment
+    spec:
+      containers:
+          image: busybox:1.0.0
+          imagePullPolicy: IfNotPresent
+          name: test-deployment
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP

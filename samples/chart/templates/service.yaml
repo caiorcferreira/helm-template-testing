@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.application.name }}-node-svc-0
+  labels:
+    app: {{ .Values.application.name }}-svc
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.application.name }}-0.example.io
+    external-dns.alpha.kubernetes.io/access: private
+    foo.io: bar
+spec:
+  type: NodePort
+  externalTrafficPolicy: Cluster
+  ports:
+    {{- if not (empty .Values.application.ports)}}
+    {{- range $i, $port := .Values.application.ports }}
+    - protocol: TCP
+      targetPort: {{ $port }}
+      port: {{ $port }}
+      name: {{ printf "tcp%d" $i }}
+    {{- end }}
+    {{- else }}
+    - protocol: TCP
+      targetPort: 80
+      port: 80
+      name: tcp0
+    {{- end }}
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ .Values.application.name }}-0

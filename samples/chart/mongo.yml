@@ -1,0 +1,76 @@
+featureCompatibilityVersion: { { .Values.database.mongo.featureCompatibilityVersion } }
+security:
+  tls:
+    optional: true
+    enabled: true
+    certificateKeySecretRef:
+      name: { { .Values.database.mongo.security.certificateKeySecretName } }
+    caConfigMapRef:
+      name: { { .Values.database.mongo.security.caConfigMapName } }
+  authentication:
+    modes: ["SCRAM"]
+replicaSetHorizons:
+  {{- range $i, $target := .Values.database.mongo.expose }}
+  - test: {{ $target }}
+  {{- end }}
+users:
+  - name: admin
+    db: admin
+    passwordSecretRef:
+      name: admin-password
+    roles:
+      - name: clusterAdmin
+        db: admin
+      - name: userAdminAnyDatabase
+        db: admin
+    scramCredentialsSecretName: my-scram
+additionalMongodConfig:
+  storage.wiredTiger.engineConfig.journalCompressor: zlib
+  setParameter.tlsWithholdClientCertificate: 1
+  net.tls.allowConnectionsWithoutCertificates: true
+  net.tls.allowInvalidCertificates: true
+statefulSet:
+  spec:
+    template:
+      spec:
+        terminationGracePeriodSeconds: 60
+        containers:
+          - name: mongod
+            resources:
+              limits:
+                cpu: "0.2"
+                memory: 250M
+              requests:
+                cpu: "0.2"
+                memory: 200M
+            lifecycle:
+              preStop:
+                exec:
+                  command:
+                    - /bin/sleep
+                    - "30"
+          - name: mongodb-agent
+            resources:
+              limits:
+                cpu: "1"
+                memory: 250M
+              requests:
+                cpu: "1"
+                memory: 200M
+    volumeClaimTemplates:
+      - metadata:
+          name: data-volume
+        spec:
+          storageClassName: gp2-resizable
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+      - metadata:
+          name: logs-volume
+        spec:
+          storageClassName: gp2-resizable
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
